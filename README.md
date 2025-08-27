@@ -1,0 +1,1 @@
+metalpipe is a CLI for running metal compute shaders on arbitrary structured buffer data provided. The output will be whatever comes out of the compute shader, but can be further processed by other CLIs using standard UNIX pipes.
