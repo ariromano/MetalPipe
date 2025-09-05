@@ -31,9 +31,10 @@ class MetalShaderExecutor {
 	func executeShader(
 		computeFunction: MTLComputePipelineState,
 		inputData: Data,
+		bufferSize: Int? = nil
 	) throws -> Data {
 		// Determine buffer size
-		let actualBufferSize = max(inputData.count, 1024)
+		let actualBufferSize = bufferSize ?? max(inputData.count, 1024)
 		
 		// Create input buffer
 		let inputBuffer = device.makeBuffer(bytes: inputData.withUnsafeBytes { $0.baseAddress! }, length: actualBufferSize, options: .storageModeShared)
