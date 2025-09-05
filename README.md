@@ -1,1 +1,8 @@
-metalpipe is a CLI for running metal compute shaders on arbitrary structured buffer data provided. The output will be whatever comes out of the compute shader, but can be further processed by other CLIs using standard UNIX pipes.
+# MetalPipe
+
+A macOS command-line application for executing Metal compute shaders.
+
+## Prerequisites
+
+- macOS 10.15
+- Xcode Command Line Tools
