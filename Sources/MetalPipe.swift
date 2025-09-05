@@ -9,12 +9,15 @@ struct MetalPipe: ParsableCommand {
 		abstract: "Execute Metal compute shaders from the command line"
 	)
 	
-	@Argument(help: "Path to the shader source")
+	@Argument(help: "Path to the Metal shader source file (.metal)")
 	var shaderPath: String
 	
-	@Argument(help: "Path to input data")
+	@Argument(help: "Path to the input data file")
 	var inputPath: String
- 
+	
+	@Option(name: .shortAndLong, help: "Output format (binary, text)")
+	var format: String = "text"
+	
 	
 	@Option(name: .long, help: "Shader function name")
 	var function: String = "compute_main"
@@ -37,7 +40,7 @@ struct MetalPipe: ParsableCommand {
 		)
 		
 		// Output results
-		try outputResults(data: outputData)
+		try outputResults(data: outputData, format: format)
 	}
 
 	private func loadInputData(from path: String) throws -> Data {
@@ -60,7 +63,7 @@ struct MetalPipe: ParsableCommand {
 		var data = Data()
 		
 		for numberString in numbers {
-				if let value = Float(numberString) {
+			if let value = Float(numberString) {
 					withUnsafeBytes(of: value) { data.append(contentsOf: $0) }
 				}
 		}
@@ -69,9 +72,15 @@ struct MetalPipe: ParsableCommand {
 	}
 	
 	
-	private func outputResults(data: Data) throws {
-		try outputAsText(data: data)
-
+	private func outputResults(data: Data, format: String) throws {
+		switch format.lowercased() {
+		case "binary":
+			try outputAsBinary(data: data)
+		case "text":
+			try outputAsText(data: data)
+		default:
+			throw ValidationError("Unsupported output format: \(format)")
+		}
 	}
 	
 	private func outputAsBinary(data: Data) throws {
