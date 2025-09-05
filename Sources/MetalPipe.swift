@@ -15,8 +15,8 @@ struct MetalPipe: ParsableCommand {
 	@Argument(help: "Path to the input data file")
 	var inputPath: String
 	
-	@Option(name: .shortAndLong, help: "Output format (binary, text)")
-	var format: String = "text"
+	@Option(name: .shortAndLong, help: "Output format (json, binary, text)")
+	var format: String = "json"
 	
 	
 	@Option(name: .long, help: "Shader function name")
@@ -90,6 +90,8 @@ struct MetalPipe: ParsableCommand {
 	
 	private func outputResults(data: Data, format: String, type: String) throws {
 		switch format.lowercased() {
+		case "json":
+			try outputAsJSON(data: data, type: type)
 		case "binary":
 			try outputAsBinary(data: data)
 		case "text":
@@ -97,6 +99,31 @@ struct MetalPipe: ParsableCommand {
 		default:
 			throw ValidationError("Unsupported output format: \(format)")
 		}
+	}
+	
+	private func outputAsJSON(data: Data, type: String) throws {
+		var values: [Any] = []
+		
+		data.withUnsafeBytes { bytes in
+			let buffer = bytes.bindMemory(to: UInt8.self)
+			
+			switch type {
+			case "float32":
+				let floatBuffer = bytes.bindMemory(to: Float.self)
+				values = Array(floatBuffer)
+			case "int32":
+				let intBuffer = bytes.bindMemory(to: Int32.self)
+				values = Array(intBuffer)
+			case "uint32":
+				let uintBuffer = bytes.bindMemory(to: UInt32.self)
+				values = Array(uintBuffer)
+			default:
+				values = Array(buffer)
+			}
+		}
+		
+		let jsonData = try JSONSerialization.data(withJSONObject: values, options: .prettyPrinted)
+		print(String(data: jsonData, encoding: .utf8) ?? "")
 	}
 	
 	private func outputAsBinary(data: Data) throws {
