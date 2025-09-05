@@ -18,16 +18,27 @@ struct MetalPipe: ParsableCommand {
 	@Option(name: .shortAndLong, help: "Output format (json, binary, text)")
 	var format: String = "json"
 	
+	@Option(name: .shortAndLong, help: "Thread group size (comma-separated, e.g., 32,1,1)")
+	var threadGroupSize: String = "32,1,1"
+	
+	@Option(name: .shortAndLong, help: "Number of thread groups (comma-separated, e.g., 1,1,1)")
+	var threadGroups: String = "1,1,1"
 	
 	@Option(name: .long, help: "Shader function name")
 	var function: String = "compute_main"
 	
 	@Option(name: .long, help: "Input data type (float32, int32, uint32)")
 	var inputType: String = "float32"
-
+	
+	@Option(name: .long, help: "Buffer size in bytes (auto-detect if not specified)")
+	var bufferSize: Int?
 	
 	func run() throws {
 		let executor = try MetalShaderExecutor()
+		
+		// Parse thread configuration
+		let threadGroupSize = parseThreadSize(self.threadGroupSize)
+		let threadGroups = parseThreadSize(self.threadGroups)
 		
 		// Load and compile shader
 		let shaderSource = try String(contentsOfFile: shaderPath)
@@ -40,12 +51,27 @@ struct MetalPipe: ParsableCommand {
 		let outputData = try executor.executeShader(
 			computeFunction: computeFunction,
 			inputData: inputData,
+			threadGroupSize: threadGroupSize,
+			threadGroups: threadGroups,
+			bufferSize: bufferSize
 		)
 		
 		// Output results
 		try outputResults(data: outputData, format: format, type: inputType)
 	}
-
+	
+	private func parseThreadSize(_ sizeString: String) -> MTLSize {
+		let components = sizeString.split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+		guard components.count >= 1 else {
+			return MTLSize(width: 1, height: 1, depth: 1)
+		}
+		return MTLSize(
+			width: components[0],
+			height: components.count > 1 ? components[1] : 1,
+			depth: components.count > 2 ? components[2] : 1
+		)
+	}
+	
 	private func loadInputData(from path: String, type: String) throws -> Data {
 		let fileExtension = URL(fileURLWithPath: path).pathExtension.lowercased()
 		

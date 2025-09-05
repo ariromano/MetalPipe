@@ -31,6 +31,8 @@ class MetalShaderExecutor {
 	func executeShader(
 		computeFunction: MTLComputePipelineState,
 		inputData: Data,
+		threadGroupSize: MTLSize,
+		threadGroups: MTLSize,
 		bufferSize: Int? = nil
 	) throws -> Data {
 		// Determine buffer size
@@ -54,7 +56,7 @@ class MetalShaderExecutor {
 		encoder!.setBuffer(outputBuffer, offset: 0, index: 1)
 		
 		// Dispatch threads
-		encoder!.dispatchThreadgroups(MTLSize(width: 32, height: 1, depth: 1), threadsPerThreadgroup: MTLSize(width: 1, height: 1, depth: 1))
+		encoder!.dispatchThreadgroups(threadGroups, threadsPerThreadgroup: threadGroupSize)
 		encoder!.endEncoding()
 		
 		// Commit and wait
