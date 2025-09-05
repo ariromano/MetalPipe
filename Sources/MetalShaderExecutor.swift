@@ -71,8 +71,7 @@ class MetalShaderExecutor {
 		}
 	}
 	
-	func createBuffer(length: Int, options: MTLResourceOptions = .storageModeShared) -> MTLBuffer?
-	{
+	func createBuffer(length: Int, options: MTLResourceOptions = .storageModeShared) -> MTLBuffer? {
 		return device.makeBuffer(length: length, options: options)
 	}
 }

@@ -15,12 +15,17 @@ struct MetalPipe: ParsableCommand {
 	@Argument(help: "Path to input data")
 	var inputPath: String
  
+	
+	@Option(name: .long, help: "Shader function name")
+	var function: String = "compute_main"
+	
+	
 	func run() throws {
 		let executor = try MetalShaderExecutor()
 		
 		// Load and compile shader
 		let shaderSource = try String(contentsOfFile: shaderPath)
-		let computeFunction = try executor.compileShader(source: shaderSource, functionName: "compute_main")
+		let computeFunction = try executor.compileShader(source: shaderSource, functionName: function)
 		
 		// Load input data
 		let inputData = try loadInputData(from: inputPath)
